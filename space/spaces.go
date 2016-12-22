@@ -324,7 +324,7 @@ func (m *DefaultSpaceManager) FindSpace(orgName, spaceName string) (*cloudcontro
 	if orgGUID, err := m.OrgMgr.GetOrgGUID(orgName); err != nil {
 		return nil, err
 	} else {
-		if spaces, err := m.CloudController.ListSpaces(orgGUID); err == nil {
+		if spaces, err := m.CloudController.ListOrgSpaces(orgGUID); err == nil {
 			for _, theSpace := range spaces {
 				if theSpace.Entity.Name == spaceName {
 					return &theSpace, nil
@@ -367,7 +367,7 @@ func (m *DefaultSpaceManager) CreateSpaces(configDir, ldapBindPassword string) e
 					return err
 				}
 				var spaces []cloudcontroller.Space
-				if spaces, err = m.CloudController.ListSpaces(orgGUID); err == nil {
+				if spaces, err = m.CloudController.ListOrgSpaces(orgGUID); err == nil {
 					for _, spaceName := range input.Spaces {
 						if m.doesSpaceExist(spaces, spaceName) {
 							lo.G.Info(fmt.Sprintf("[%s] space already exists", spaceName))

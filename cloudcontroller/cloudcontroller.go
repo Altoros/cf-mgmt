@@ -22,7 +22,18 @@ func (m *DefaultManager) CreateSpace(spaceName, orgGUID string) error {
 	return err
 }
 
-func (m *DefaultManager) ListSpaces(orgGUID string) ([]Space, error) {
+func (m *DefaultManager) ListAllSpaces() ([]Space, error) {
+	spaceResources := &SpaceResources{}
+	url := fmt.Sprintf("%s/v2/spaces", m.Host)
+	if err := m.HTTP.Get(url, m.Token, spaceResources); err == nil {
+		spaces := spaceResources.Spaces
+		return spaces, nil
+	} else {
+		return nil, err
+	}
+}
+
+func (m *DefaultManager) ListOrgSpaces(orgGUID string) ([]Space, error) {
 	spaceResources := &SpaceResources{}
 	url := fmt.Sprintf("%s/v2/organizations/%s/spaces?inline-relations-depth=1", m.Host, orgGUID)
 	if err := m.HTTP.Get(url, m.Token, spaceResources); err == nil {

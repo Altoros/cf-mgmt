@@ -186,15 +186,15 @@ func (_mr *_MockManagerRecorder) ListSpaceQuotas(arg0 interface{}) *gomock.Call 
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ListSpaceQuotas", arg0)
 }
 
-func (_m *MockManager) ListSpaces(_param0 string) ([]cloudcontroller.Space, error) {
-	ret := _m.ctrl.Call(_m, "ListSpaces", _param0)
+func (_m *MockManager) ListOrgSpaces(_param0 string) ([]cloudcontroller.Space, error) {
+	ret := _m.ctrl.Call(_m, "ListOrgSpaces", _param0)
 	ret0, _ := ret[0].([]cloudcontroller.Space)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockManagerRecorder) ListSpaces(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ListSpaces", arg0)
+func (_mr *_MockManagerRecorder) ListOrgSpaces(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ListOrgSpaces", arg0)
 }
 
 func (_m *MockManager) UpdateQuota(_param0 string, _param1 string, _param2 int, _param3 int, _param4 int, _param5 int, _param6 bool) error {

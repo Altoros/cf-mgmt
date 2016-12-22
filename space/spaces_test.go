@@ -85,7 +85,7 @@ var _ = Describe("given SpaceManager", func() {
 	Context("FindSpace()", func() {
 		It("should return an space", func() {
 			spaces := []cloudcontroller.Space{
-				cloudcontroller.Space{
+				{
 					Entity: cloudcontroller.SpaceEntity{
 						Name: "testSpace",
 					},
@@ -93,7 +93,7 @@ var _ = Describe("given SpaceManager", func() {
 				},
 			}
 			mockOrgMgr.EXPECT().GetOrgGUID("testOrg").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			space, err := spaceManager.FindSpace("testOrg", "testSpace")
 			Ω(err).Should(BeNil())
 			Ω(space).ShouldNot(BeNil())
@@ -101,7 +101,7 @@ var _ = Describe("given SpaceManager", func() {
 		})
 		It("should return an error if space not found", func() {
 			spaces := []cloudcontroller.Space{
-				cloudcontroller.Space{
+				{
 					Entity: cloudcontroller.SpaceEntity{
 						Name: "testSpace",
 					},
@@ -109,7 +109,7 @@ var _ = Describe("given SpaceManager", func() {
 				},
 			}
 			mockOrgMgr.EXPECT().GetOrgGUID("testOrg").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			space, err := spaceManager.FindSpace("testOrg", "testSpace2")
 			Ω(err).Should(HaveOccurred())
 			Ω(space).Should(BeNil())
@@ -122,7 +122,7 @@ var _ = Describe("given SpaceManager", func() {
 		})
 		It("should return an error if unable to get Spaces", func() {
 			mockOrgMgr.EXPECT().GetOrgGUID("testOrg").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(nil, fmt.Errorf("test"))
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(nil, fmt.Errorf("test"))
 			space, err := spaceManager.FindSpace("testOrg", "testSpace2")
 			Ω(err).Should(HaveOccurred())
 			Ω(space).Should(BeNil())
@@ -133,7 +133,7 @@ var _ = Describe("given SpaceManager", func() {
 		It("should create 2 spaces", func() {
 			spaces := []cloudcontroller.Space{}
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().CreateSpace("space1", "testOrgGUID").Return(nil)
 			mockCloudController.EXPECT().CreateSpace("space2", "testOrgGUID").Return(nil)
 			err := spaceManager.CreateSpaces("./fixtures/config", "")
@@ -141,7 +141,7 @@ var _ = Describe("given SpaceManager", func() {
 		})
 		It("should create 1 space", func() {
 			spaces := []cloudcontroller.Space{
-				cloudcontroller.Space{
+				{
 					Entity: cloudcontroller.SpaceEntity{
 						Name: "space1",
 					},
@@ -149,7 +149,7 @@ var _ = Describe("given SpaceManager", func() {
 				},
 			}
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().CreateSpace("space2", "testOrgGUID").Return(nil)
 			err := spaceManager.CreateSpaces("./fixtures/config", "")
 			Ω(err).Should(BeNil())
@@ -165,7 +165,7 @@ var _ = Describe("given SpaceManager", func() {
 			config := &l.Config{
 				Enabled: true,
 			}
-			spaces := []cloudcontroller.Space{cloudcontroller.Space{
+			spaces := []cloudcontroller.Space{{
 				Entity: cloudcontroller.SpaceEntity{
 					Name:    "space1",
 					OrgGUID: "testOrgGUID",
@@ -178,7 +178,7 @@ var _ = Describe("given SpaceManager", func() {
 			uaacUsers := make(map[string]string)
 			uaacUsers["cwashburn"] = "cwashburn"
 			users := []l.User{}
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return([]cloudcontroller.Space{}, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return([]cloudcontroller.Space{}, nil)
 			mockLdap.EXPECT().GetConfig("./fixtures/default_config", "test_pwd").Return(config, nil)
 			mockCloudController.EXPECT().CreateSpace("space1", "testOrgGUID").Return(nil)
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
@@ -186,7 +186,7 @@ var _ = Describe("given SpaceManager", func() {
 			mockUaac.EXPECT().ListUsers().Return(uaacUsers, nil)
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
 
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockLdap.EXPECT().GetUserIDs(config, "default_test_space1_developers").Return(users, nil)
 			mockLdap.EXPECT().GetUser(config, "cwashburndefault1").Return(&l.User{UserID: "cwashburndefault1", UserDN: "cn=cwashburndefault1", Email: "cwashburndefault1@test.io"}, nil)
 
@@ -225,7 +225,7 @@ var _ = Describe("given SpaceManager", func() {
 			bytes, e := ioutil.ReadFile("./fixtures/config/test/space1/security-group.json")
 			Ω(e).Should(BeNil())
 			spaces := []cloudcontroller.Space{
-				cloudcontroller.Space{
+				{
 					Entity: cloudcontroller.SpaceEntity{
 						Name: "space1",
 					},
@@ -236,7 +236,7 @@ var _ = Describe("given SpaceManager", func() {
 			}
 			sgs := make(map[string]string)
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().ListSecurityGroups().Return(sgs, nil)
 			mockCloudController.EXPECT().CreateSecurityGroup("test-space1", string(bytes)).Return("SGGUID", nil)
 			mockCloudController.EXPECT().AssignSecurityGroupToSpace("space1GUID", "SGGUID").Return(nil)
@@ -248,7 +248,7 @@ var _ = Describe("given SpaceManager", func() {
 			bytes, e := ioutil.ReadFile("./fixtures/config/test/space1/security-group.json")
 			Ω(e).Should(BeNil())
 			spaces := []cloudcontroller.Space{
-				cloudcontroller.Space{
+				{
 					Entity: cloudcontroller.SpaceEntity{
 						Name: "space1",
 					},
@@ -260,7 +260,7 @@ var _ = Describe("given SpaceManager", func() {
 			sgs := make(map[string]string)
 			sgs["test-space1"] = "SGGUID"
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().ListSecurityGroups().Return(sgs, nil)
 			mockCloudController.EXPECT().UpdateSecurityGroup("SGGUID", "test-space1", string(bytes)).Return(nil)
 			mockCloudController.EXPECT().AssignSecurityGroupToSpace("space1GUID", "SGGUID").Return(nil)
@@ -272,7 +272,7 @@ var _ = Describe("given SpaceManager", func() {
 	Context("CreateQuotas()", func() {
 		It("should create 2 quotas", func() {
 			spaces := []cloudcontroller.Space{
-				cloudcontroller.Space{
+				{
 					Entity: cloudcontroller.SpaceEntity{
 						Name:    "space1",
 						OrgGUID: "testOrgGUID",
@@ -281,7 +281,7 @@ var _ = Describe("given SpaceManager", func() {
 						GUID: "space1GUID",
 					},
 				},
-				cloudcontroller.Space{
+				{
 					Entity: cloudcontroller.SpaceEntity{
 						Name:    "space2",
 						OrgGUID: "testOrgGUID",
@@ -293,13 +293,13 @@ var _ = Describe("given SpaceManager", func() {
 			}
 			quotas := make(map[string]string)
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().ListSpaceQuotas("testOrgGUID").Return(quotas, nil)
 			mockCloudController.EXPECT().CreateSpaceQuota("testOrgGUID", "space1", 10240, -1, 10, -1, true).Return("space1QuotaGUID", nil)
 			mockCloudController.EXPECT().AssignQuotaToSpace("space1GUID", "space1QuotaGUID")
 
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().ListSpaceQuotas("testOrgGUID").Return(quotas, nil)
 			mockCloudController.EXPECT().CreateSpaceQuota("testOrgGUID", "space2", 10240, -1, 10, -1, true).Return("space2QuotaGUID", nil)
 			mockCloudController.EXPECT().AssignQuotaToSpace("space2GUID", "space2QuotaGUID")
@@ -309,7 +309,7 @@ var _ = Describe("given SpaceManager", func() {
 
 		It("should update 2 quota", func() {
 			spaces := []cloudcontroller.Space{
-				cloudcontroller.Space{
+				{
 					Entity: cloudcontroller.SpaceEntity{
 						Name:    "space1",
 						OrgGUID: "testOrgGUID",
@@ -318,7 +318,7 @@ var _ = Describe("given SpaceManager", func() {
 						GUID: "space1GUID",
 					},
 				},
-				cloudcontroller.Space{
+				{
 					Entity: cloudcontroller.SpaceEntity{
 						Name:    "space2",
 						OrgGUID: "testOrgGUID",
@@ -332,13 +332,13 @@ var _ = Describe("given SpaceManager", func() {
 			quotas["space1"] = "space1QuotaGUID"
 			quotas["space2"] = "space2QuotaGUID"
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().ListSpaceQuotas("testOrgGUID").Return(quotas, nil)
 			mockCloudController.EXPECT().UpdateSpaceQuota("testOrgGUID", "space1QuotaGUID", "space1", 10240, -1, 10, -1, true).Return(nil)
 			mockCloudController.EXPECT().AssignQuotaToSpace("space1GUID", "space1QuotaGUID")
 
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().ListSpaceQuotas("testOrgGUID").Return(quotas, nil)
 			mockCloudController.EXPECT().UpdateSpaceQuota("testOrgGUID", "space2QuotaGUID", "space2", 10240, -1, 10, -1, true).Return(nil)
 			mockCloudController.EXPECT().AssignQuotaToSpace("space2GUID", "space2QuotaGUID")
@@ -349,7 +349,7 @@ var _ = Describe("given SpaceManager", func() {
 
 	Context("UpdateSpaces()", func() {
 		spaces := []cloudcontroller.Space{
-			cloudcontroller.Space{
+			{
 				Entity: cloudcontroller.SpaceEntity{
 					Name:    "space1",
 					OrgGUID: "testOrgGUID",
@@ -358,7 +358,7 @@ var _ = Describe("given SpaceManager", func() {
 					GUID: "space1GUID",
 				},
 			},
-			cloudcontroller.Space{
+			{
 				Entity: cloudcontroller.SpaceEntity{
 					Name:    "space2",
 					OrgGUID: "testOrgGUID",
@@ -370,10 +370,10 @@ var _ = Describe("given SpaceManager", func() {
 		}
 		It("should turn on allow ssh", func() {
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().UpdateSpaceSSH(true, "space1GUID").Return(nil)
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().UpdateSpaceSSH(true, "space2GUID").Return(nil)
 
 			err := spaceManager.UpdateSpaces("./fixtures/config")
@@ -381,16 +381,16 @@ var _ = Describe("given SpaceManager", func() {
 		})
 		It("should not modify anything", func() {
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 
 			err := spaceManager.UpdateSpaces("./fixtures/config-sshoff")
 			Ω(err).Should(BeNil())
 		})
 		It("should error when UpdateSpaceSSH errors", func() {
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockCloudController.EXPECT().UpdateSpaceSSH(true, "space1GUID").Return(fmt.Errorf("test"))
 
 			err := spaceManager.UpdateSpaces("./fixtures/config")
@@ -400,7 +400,7 @@ var _ = Describe("given SpaceManager", func() {
 
 	Context("UpdateSpaceUsers()", func() {
 		spaces := []cloudcontroller.Space{
-			cloudcontroller.Space{
+			{
 				Entity: cloudcontroller.SpaceEntity{
 					Name:    "space1",
 					OrgGUID: "testOrgGUID",
@@ -409,7 +409,7 @@ var _ = Describe("given SpaceManager", func() {
 					GUID: "space1GUID",
 				},
 			},
-			cloudcontroller.Space{
+			{
 				Entity: cloudcontroller.SpaceEntity{
 					Name:    "space2",
 					OrgGUID: "testOrgGUID",
@@ -428,12 +428,12 @@ var _ = Describe("given SpaceManager", func() {
 			uaacUsers["cwashburn1"] = "cwashburn1"
 			uaacUsers["cwashburn2"] = "cwashburn2"
 			users := []l.User{
-				l.User{UserID: "cwashburn", UserDN: "cn=cwashburn", Email: "cwashburn@testdomain.com"},
+				{UserID: "cwashburn", UserDN: "cn=cwashburn", Email: "cwashburn@testdomain.com"},
 			}
 			mockLdap.EXPECT().GetConfig("./fixtures/user_config", "test").Return(config, nil)
 			mockUaac.EXPECT().ListUsers().Return(uaacUsers, nil)
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 
 			mockLdap.EXPECT().GetUserIDs(config, "test_space1_developers").Return(users, nil)
 			mockLdap.EXPECT().GetUser(config, "cwashburn1").Return(&l.User{UserID: "cwashburn1", UserDN: "cn=cwashburn1", Email: "cwashburn1@test.io"}, nil)
@@ -489,12 +489,12 @@ var _ = Describe("given SpaceManager", func() {
 			}
 			uaacUsers := make(map[string]string)
 			users := []l.User{
-				l.User{UserID: "cwashburn", UserDN: "cn=cwashburn", Email: "cwashburn@testdomain.com"},
+				{UserID: "cwashburn", UserDN: "cn=cwashburn", Email: "cwashburn@testdomain.com"},
 			}
 			mockLdap.EXPECT().GetConfig("./fixtures/user_config", "test").Return(config, nil)
 			mockUaac.EXPECT().ListUsers().Return(uaacUsers, nil)
 			mockOrgMgr.EXPECT().GetOrgGUID("test").Return("testOrgGUID", nil)
-			mockCloudController.EXPECT().ListSpaces("testOrgGUID").Return(spaces, nil)
+			mockCloudController.EXPECT().ListOrgSpaces("testOrgGUID").Return(spaces, nil)
 			mockLdap.EXPECT().GetUserIDs(config, "test_space1_developers").Return(users, nil)
 			mockLdap.EXPECT().GetUser(config, "cwashburn1").Return(&l.User{UserID: "cwashburn1", UserDN: "cn=cwashburn1", Email: "cwashburn1@test.io"}, nil)
 			mockLdap.EXPECT().GetUser(config, "cwashburn2").Return(&l.User{UserID: "cwashburn2", UserDN: "cn=cwashburn2", Email: "cwashburn2@test.io"}, nil)

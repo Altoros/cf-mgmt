@@ -52,7 +52,6 @@ var _ = Describe("given CloudControllerManager", func() {
 	})
 
 	Context("AddUserToSpaceRole()", func() {
-
 		It("should add user to space role", func() {
 			bodyBytes := []byte(`{"username":"cwashburn"}`)
 			server.AppendHandlers(
@@ -159,8 +158,35 @@ var _ = Describe("given CloudControllerManager", func() {
 			Ω(server.ReceivedRequests()).Should(HaveLen(1))
 		})
 	})
-	Context("ListSpaces()", func() {
 
+	Context("ListAllSpaces()", func() {
+		It("should be successful", func() {
+			bytes, err := ioutil.ReadFile("fixtures/spaces.json")
+
+			Ω(err).ShouldNot(HaveOccurred())
+			server.AppendHandlers(
+				CombineHandlers(
+					VerifyRequest("GET", "/v2/spaces"),
+					RespondWith(http.StatusOK, string(bytes)),
+				),
+			)
+			spaces, err := manager.ListAllSpaces()
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(spaces).ShouldNot(BeNil())
+			Ω(spaces).Should(HaveLen(3))
+			for _, space := range spaces {
+				Ω(space.Entity).ShouldNot(BeNil())
+				Ω(space.Entity.AllowSSH).ShouldNot(BeNil())
+				Ω(space.Entity.Name).ShouldNot(BeNil())
+				Ω(space.Entity.OrgGUID).ShouldNot(BeNil())
+				Ω(space.MetaData).ShouldNot(BeNil())
+				Ω(space.MetaData.GUID).ShouldNot(BeNil())
+			}
+			Ω(server.ReceivedRequests()).Should(HaveLen(1))
+		})
+	})
+
+	Context("ListOrgSpaces()", func() {
 		It("should be successful", func() {
 			bytes, err := ioutil.ReadFile("fixtures/spaces.json")
 
@@ -171,7 +197,7 @@ var _ = Describe("given CloudControllerManager", func() {
 					RespondWith(http.StatusOK, string(bytes)),
 				),
 			)
-			spaces, err := manager.ListSpaces(orgGUID)
+			spaces, err := manager.ListOrgSpaces(orgGUID)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(spaces).ShouldNot(BeNil())
 			Ω(spaces).Should(HaveLen(3))
@@ -192,7 +218,7 @@ var _ = Describe("given CloudControllerManager", func() {
 					RespondWithJSONEncoded(http.StatusServiceUnavailable, ""),
 				),
 			)
-			_, err := manager.ListSpaces(orgGUID)
+			_, err := manager.ListOrgSpaces(orgGUID)
 			Ω(err).Should(HaveOccurred())
 			Ω(server.ReceivedRequests()).Should(HaveLen(1))
 		})

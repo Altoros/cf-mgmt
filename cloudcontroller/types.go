@@ -4,7 +4,9 @@ import "github.com/pivotalservices/cf-mgmt/http"
 
 type Manager interface {
 	CreateSpace(spaceName, orgGUID string) error
-	ListSpaces(orgGUID string) ([]Space, error)
+	ListAllSpaces() ([]Space, error)
+	ListOrgSpaces(orgGUID string) ([]Space, error)
+
 	AddUserToSpaceRole(userName, role, spaceGUID string) error
 	UpdateSpaceSSH(sshAllowed bool, spaceGUID string) error
 
