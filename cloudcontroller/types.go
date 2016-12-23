@@ -25,7 +25,10 @@ type Manager interface {
 	CreateOrg(orgName string) error
 	ListOrgs() ([]*Org, error)
 	AddUserToOrgRole(userName, role, orgGUID string) error
+	RemoveUserFromOrgRole(orgGUID, userId, role string) error
+	ListUsersWithOrgRole(orgGUID, role string) ([]string, error)
 	AddUserToOrg(userName, orgGUID string) error
+	ListOrgUsers(role, orgGUID string) ([]string, error)
 
 	ListQuotas() (quotas map[string]string, err error)
 	CreateQuota(quotaName string,
@@ -47,6 +50,27 @@ type DefaultManager struct {
 //SpaceResources -
 type SpaceResources struct {
 	Spaces []Space `json:"resources"`
+}
+
+//SpaceResources -
+type UserResources struct {
+	Users []User `json:"resources"`
+}
+
+type User struct {
+	MetaData UserMetaData `json:"metadata"`
+	Entity   UserEntity   `json:"entity"`
+}
+
+//SpaceMetaData -
+type UserMetaData struct {
+	GUID string `json:"guid"`
+}
+
+//SpaceMetaData -
+type UserEntity struct {
+	GUID     string `json:"guid"`
+	Username string
 }
 
 type Space struct {

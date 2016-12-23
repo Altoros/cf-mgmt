@@ -192,7 +192,16 @@ func (m *DefaultOrgManager) UpdateBillingManagers(config *ldap.Config, org *clou
 	} else {
 		return err
 	}
+
+	// removeUnauthorizedOrgUserRoles(org.MetaData.GUID, role, append(getLdapUsersIDs(users), input.BillingManager.Users))
+	actualUsersIDs, err := m.CloudController.ListUsersWithOrgRole(org.MetaData.GUID, role)
+	authorizedUserIDs := append(getLdapUsersIDs(users), input.BillingManager.Users)
+	var unauthorizedUserIDs []string
+	for _, actualUserID := range actualUsersIDs {
+		// unauthorizedUserIDs = append(unauthorizedUserIDs, )
+	}
 	return nil
+
 }
 
 func (m *DefaultOrgManager) UpdateManagers(config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string) error {
@@ -257,17 +266,24 @@ func (m *DefaultOrgManager) updateLdapUsers(config *ldap.Config, org *cloudcontr
 		} else {
 			lo.G.Info("User", user.UserID, "doesn't exist so creating in UAA")
 			if err := m.UAACMgr.CreateLdapUser(user.UserID, user.Email, user.UserDN); err != nil {
+				lo.G.Error(err)
 				return err
 			} else {
-				uaacUsers[user.UserID] = user.UserID
+				uaacUsers[strings.ToLower(user.UserID)] = user.UserID
 			}
 		}
 		if err := m.addUserToOrgAndRole(user.UserID, org.MetaData.GUID, role); err != nil {
 			return err
 		}
 	}
+}
 
-	return nil
+func getLdapUsersIDs(ldapUsers []ldap.User) []string {
+	userIDs := make([]string, len(ldapUsers))
+	for i, ldapUser := range ldapUsers {
+		userIDs[i] = ldapUser.UserID
+	}
+	return userIDs
 }
 
 func (m *DefaultOrgManager) addUserToOrgAndRole(userID, orgGUID, role string) error {

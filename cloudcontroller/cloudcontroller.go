@@ -205,3 +205,23 @@ func (m *DefaultManager) AssignQuotaToOrg(orgGUID, quotaGUID string) error {
 	sendString := fmt.Sprintf(`{"quota_definition_guid":"%s"}`, quotaGUID)
 	return m.HTTP.Put(url, m.Token, sendString)
 }
+
+func (m *DefaultManager) ListUsersWithOrgRole(orgGUID, role string) (users []string, err error) {
+	url := fmt.Sprintf("%s/v2/organizations/%s/%s", m.Host, orgGUID, role)
+	response := &Users{}
+	if err := m.HTTP.Get(url, m.Token, response); err == nil {
+		for _, user := range response.Resources {
+			users = append(user.UserID)
+		}
+		return users, nil
+	} else {
+		return nil, err
+	}
+}
+
+func (m *DefaultManager) RemoveUserFromOrgRole(orgGUID, userId, role string) error {
+	url := fmt.Sprintf("%s/v2/organizations/%s/%s/%s", m.Host, orgGUID, role, userId)
+	response := &Users{}
+	err := m.HTTP.Delete(url, m.Token, response)
+	return err
+}
