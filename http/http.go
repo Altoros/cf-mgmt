@@ -33,6 +33,23 @@ func (m *DefaultManager) Put(url, token, payload string) error {
 	return nil
 }
 
+//Delete -
+func (m *DefaultManager) Delete(url, token) error {
+	request := gorequest.New()
+	delete := request.Delete(url)
+	delete.TLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	delete.Set("Authorization", "BEARER "+token)
+	res, body, errs := put.End()
+	if len(errs) > 0 {
+		return errs[0]
+	}
+	if res.StatusCode != http.StatusNoContent {
+		return fmt.Errorf("Status %d, body %s", res.StatusCode, body)
+	}
+
+	return nil
+}
+
 //Post -
 func (m *DefaultManager) Post(url, token, payload string) (string, error) {
 	request := gorequest.New()

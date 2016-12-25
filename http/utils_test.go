@@ -145,4 +145,24 @@ var _ = Describe("given utils manager", func() {
 			Ω(server.ReceivedRequests()).Should(HaveLen(1))
 		})
 	})
+
+	Context("HTTPDelete", func() {
+		output := Sample{}
+		It("Should respond with No Content status", func() {
+			server.AppendHandlers(
+				ghttp.CombineHandlers(
+					ghttp.VerifyRequest("DELETE", "/"),
+					ghttp.VerifyHeader(http.Header{
+						"Authorization": []string{"BEARER secret"},
+					}),
+					ghttp.RespondWithJSONEncoded(http.StatusNoContent, output),
+				),
+			)
+			Ω(err).ShouldNot(HaveOccurred())
+			err = manager.Delete(server.URL(), "secret")
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(server.ReceivedRequests()).Should(HaveLen(1))
+
+		})
+	})
 })
