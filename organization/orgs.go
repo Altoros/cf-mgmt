@@ -182,79 +182,15 @@ func (m *DefaultOrgManager) UpdateOrgUsers(configDir, ldapBindPassword string) (
 }
 
 func (m *DefaultOrgManager) UpdateBillingManagers(config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string) error {
-	if users, err := m.getLdapUsers(config, input.GetBillingManagerGroup(), input.BillingManager.LdapUser); err == nil {
-		if err = m.updateLdapUsers(config, org, "billing_managers", uaacUsers, users); err != nil {
-			return err
-		}
-		for _, userID := range input.BillingManager.Users {
-			if err := m.addUserToOrgAndRole(userID, org.MetaData.GUID, "billing_managers"); err != nil {
-				return err
-			}
-		}
-	} else {
-		return err
-	}
-
-	// removeUnauthorizedOrgUserRoles(org.MetaData.GUID, role, append(getLdapUsersIDs(users), input.BillingManager.Users))
-	actualUsersIDs, err := m.CloudController.ListUsersWithOrgRole(org.MetaData.GUID, role)
-	authorizedUserIDs := append(getLdapUsersIDs(users), input.BillingManager.Users)
-	unauthorizedUserIDs := getUnauthorizedUserIDs(actualUsersIDs, authorizedUserIDs)
-	for _, userID := range unauthorizedUserIDs {
-		m.CloudController.RemoveUserFromOrgRole(org.MetaData.GUID, userID, role)
-	}
-
-	return nil
-
-}
-
-func getUnauthorizedUserIDs(actualUsersIDs, authorizedUserIDs []string) []string {
-	isUserAuthorized := make(map[string]bool, len(actualUsersIDs))
-	for _, userID := range actualUsersIDs {
-		isUserAuthorized[userID] = false
-	}
-
-	for _, authorizedUserID := range authorizedUserIDs {
-		isUserAuthorized[authorizedUserID] = true
-	}
-	var authorizedUserIDs []string
-	for _, userID := range actualUsersIDs {
-		if !isUserAuthorized[userID] {
-			authorizedUserIDs = append(userID)
-		}
-	}
-	return authorizedUserIDs
+	return updateUserWithOrgRole("billing_managers", config*ldap.Config, org*cloudcontroller.Org, input*InputUpdateOrgs, uaacUsers)
 }
 
 func (m *DefaultOrgManager) UpdateManagers(config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string) error {
-	if users, err := m.getLdapUsers(config, input.GetManagerGroup(), input.Manager.LdapUser); err == nil {
-		if err = m.updateLdapUsers(config, org, "managers", uaacUsers, users); err != nil {
-			return err
-		}
-		for _, userID := range input.Manager.Users {
-			if err := m.addUserToOrgAndRole(userID, org.MetaData.GUID, "managers"); err != nil {
-				return err
-			}
-		}
-	} else {
-		return err
-	}
-	return nil
+	return updateUserWithOrgRole("managers", config*ldap.Config, org*cloudcontroller.Org, input*InputUpdateOrgs, uaacUsers)
 }
 
 func (m *DefaultOrgManager) UpdateAuditors(config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string) error {
-	if users, err := m.getLdapUsers(config, input.GetAuditorGroup(), input.Auditor.LdapUser); err == nil {
-		if err = m.updateLdapUsers(config, org, "auditors", uaacUsers, users); err != nil {
-			return err
-		}
-		for _, userID := range input.Auditor.Users {
-			if err := m.addUserToOrgAndRole(userID, org.MetaData.GUID, "auditors"); err != nil {
-				return err
-			}
-		}
-	} else {
-		return err
-	}
-	return nil
+	return updateUserWithOrgRole("auditors", config*ldap.Config, org*cloudcontroller.Org, input*InputUpdateOrgs, uaacUsers)
 }
 
 func (m *DefaultOrgManager) getLdapUsers(config *ldap.Config, groupName string, userList []string) ([]ldap.User, error) {
@@ -299,7 +235,7 @@ func (m *DefaultOrgManager) updateLdapUsers(config *ldap.Config, org *cloudcontr
 	}
 }
 
-func getLdapUsersIDs(ldapUsers []ldap.User) []string {
+func getUserIDsFromLdapUsers(ldapUsers []ldap.User) []string {
 	userIDs := make([]string, len(ldapUsers))
 	for i, ldapUser := range ldapUsers {
 		userIDs[i] = ldapUser.UserID
@@ -316,4 +252,47 @@ func (m *DefaultOrgManager) addUserToOrgAndRole(userID, orgGUID, role string) er
 		return err
 	}
 	return nil
+}
+
+func updateUserWithOrgRole(config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string, role string) error {
+	if users, err := m.getLdapUsers(config, input.GetAuditorGroup(), input.Auditor.LdapUser); err == nil {
+		if err = m.updateLdapUsers(config, org, role, uaacUsers, users); err != nil {
+			return err
+		}
+		for _, userID := range input.Auditor.Users {
+			if err := m.addUserToOrgAndRole(userID, org.MetaData.GUID, role); err != nil {
+				return err
+			}
+		}
+	} else {
+		return err
+	}
+
+	if actualUsersIDs, err := m.CloudController.ListUsersWithOrgRole(org.MetaData.GUID, role); err != nil {
+		return err
+	}
+	authorizedUserIDs := append(getUserIDsFromLdapUsers(users), input.BillingManager.Users)
+	unauthorizedUserIDs := getUnauthorizedUserIDs(actualUsersIDs, authorizedUserIDs)
+	for _, userID := range unauthorizedUserIDs {
+		m.CloudController.RemoveUserFromOrgRole(org.MetaData.GUID, userID, role)
+	}
+	return nil
+}
+
+func getUnauthorizedUserIDs(actualUsersIDs, authorizedUserIDs []string) []string {
+	isUserAuthorized := make(map[string]bool, len(actualUsersIDs))
+	for _, userID := range actualUsersIDs {
+		isUserAuthorized[userID] = false
+	}
+
+	for _, authorizedUserID := range authorizedUserIDs {
+		isUserAuthorized[authorizedUserID] = true
+	}
+	var authorizedUserIDs []string
+	for _, userID := range actualUsersIDs {
+		if !isUserAuthorized[userID] {
+			authorizedUserIDs = append(userID)
+		}
+	}
+	return authorizedUserIDs
 }
