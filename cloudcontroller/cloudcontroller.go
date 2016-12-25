@@ -219,9 +219,8 @@ func (m *DefaultManager) ListUsersWithOrgRole(orgGUID, role string) (users []str
 	}
 }
 
-func (m *DefaultManager) RemoveUserFromOrgRole(orgGUID, userId, role string) error {
-	url := fmt.Sprintf("%s/v2/organizations/%s/%s/%s", m.Host, orgGUID, role, userId)
-	response := &Users{}
-	err := m.HTTP.Delete(url, m.Token, response)
+func (m *DefaultManager) RemoveUserFromOrgRole(orgGUID, userID, role string) error {
+	url := fmt.Sprintf("%s/v2/organizations/%s/%s/%s", m.Host, orgGUID, role, userID)
+	err := m.HTTP.Delete(url, m.Token)
 	return err
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/pivotalservices/cf-mgmt/cloudcontroller"
 	"github.com/pivotalservices/cf-mgmt/ldap"
 	"github.com/pivotalservices/cf-mgmt/uaac"
+	"github.com/pivotalservices/cf-mgmt/user"
 	"github.com/pivotalservices/cf-mgmt/utils"
 	"github.com/xchapter7x/lo"
 )
@@ -18,6 +19,7 @@ func NewManager(sysDomain, token, uaacToken string) (mgr Manager) {
 		CloudController: cloudcontroller.NewManager(fmt.Sprintf("https://api.%s", sysDomain), token),
 		UtilsMgr:        utils.NewDefaultManager(),
 		LdapMgr:         ldap.NewManager(),
+		UserMgr:         user.NewManager(sysDomain, token, uaacToken),
 	}
 }
 
@@ -196,12 +198,31 @@ func (m *DefaultOrgManager) UpdateBillingManagers(config *ldap.Config, org *clou
 	// removeUnauthorizedOrgUserRoles(org.MetaData.GUID, role, append(getLdapUsersIDs(users), input.BillingManager.Users))
 	actualUsersIDs, err := m.CloudController.ListUsersWithOrgRole(org.MetaData.GUID, role)
 	authorizedUserIDs := append(getLdapUsersIDs(users), input.BillingManager.Users)
-	var unauthorizedUserIDs []string
-	for _, actualUserID := range actualUsersIDs {
-		// unauthorizedUserIDs = append(unauthorizedUserIDs, )
+	unauthorizedUserIDs := getUnauthorizedUserIDs(actualUsersIDs, authorizedUserIDs)
+	for _, userID := range unauthorizedUserIDs {
+		m.CloudController.RemoveUserFromOrgRole(org.MetaData.GUID, userID, role)
 	}
+
 	return nil
 
+}
+
+func getUnauthorizedUserIDs(actualUsersIDs, authorizedUserIDs []string) []string {
+	isUserAuthorized := make(map[string]bool, len(actualUsersIDs))
+	for _, userID := range actualUsersIDs {
+		isUserAuthorized[userID] = false
+	}
+
+	for _, authorizedUserID := range authorizedUserIDs {
+		isUserAuthorized[authorizedUserID] = true
+	}
+	var authorizedUserIDs []string
+	for _, userID := range actualUsersIDs {
+		if !isUserAuthorized[userID] {
+			authorizedUserIDs = append(userID)
+		}
+	}
+	return authorizedUserIDs
 }
 
 func (m *DefaultOrgManager) UpdateManagers(config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string) error {
