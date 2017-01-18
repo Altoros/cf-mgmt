@@ -208,10 +208,10 @@ func (m *DefaultManager) AssignQuotaToOrg(orgGUID, quotaGUID string) error {
 
 func (m *DefaultManager) ListUsersWithOrgRole(orgGUID, role string) (users []string, err error) {
 	url := fmt.Sprintf("%s/v2/organizations/%s/%s", m.Host, orgGUID, role)
-	response := &Users{}
-	if err := m.HTTP.Get(url, m.Token, response); err == nil {
+	response := &UserResources{}
+	if err := m.HTTP.Get(url, m.Token, &response); err == nil {
 		for _, user := range response.Resources {
-			users = append(user.UserID)
+			users = append(users, user.MetaData.GUID)
 		}
 		return users, nil
 	} else {

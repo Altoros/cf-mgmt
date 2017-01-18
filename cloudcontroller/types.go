@@ -28,7 +28,7 @@ type Manager interface {
 	RemoveUserFromOrgRole(orgGUID, userId, role string) error
 	ListUsersWithOrgRole(orgGUID, role string) ([]string, error)
 	AddUserToOrg(userName, orgGUID string) error
-	ListOrgUsers(role, orgGUID string) ([]string, error)
+	// ListOrgUsers(role, orgGUID string) ([]string, error)
 
 	ListQuotas() (quotas map[string]string, err error)
 	CreateQuota(quotaName string,
@@ -54,7 +54,7 @@ type SpaceResources struct {
 
 //SpaceResources -
 type UserResources struct {
-	Users []User `json:"resources"`
+	Resources []User `json:"resources"`
 }
 
 type User struct {
@@ -69,7 +69,6 @@ type UserMetaData struct {
 
 //SpaceMetaData -
 type UserEntity struct {
-	GUID     string `json:"guid"`
 	Username string
 }
 

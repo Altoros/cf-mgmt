@@ -34,12 +34,12 @@ func (m *DefaultManager) Put(url, token, payload string) error {
 }
 
 //Delete -
-func (m *DefaultManager) Delete(url, token) error {
+func (m *DefaultManager) Delete(url, token string) error {
 	request := gorequest.New()
 	delete := request.Delete(url)
 	delete.TLSClientConfig(&tls.Config{InsecureSkipVerify: true})
 	delete.Set("Authorization", "BEARER "+token)
-	res, body, errs := put.End()
+	res, body, errs := delete.End()
 	if len(errs) > 0 {
 		return errs[0]
 	}
@@ -90,6 +90,7 @@ type Manager interface {
 	Put(url, token, payload string) (err error)
 	Post(url, token, payload string) (body string, err error)
 	Get(url, token string, target interface{}) (err error)
+	Delete(url, token string) (err error)
 }
 
 //DefaultManager -

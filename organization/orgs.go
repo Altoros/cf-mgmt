@@ -7,7 +7,6 @@ import (
 	"github.com/pivotalservices/cf-mgmt/cloudcontroller"
 	"github.com/pivotalservices/cf-mgmt/ldap"
 	"github.com/pivotalservices/cf-mgmt/uaac"
-	"github.com/pivotalservices/cf-mgmt/user"
 	"github.com/pivotalservices/cf-mgmt/utils"
 	"github.com/xchapter7x/lo"
 )
@@ -19,7 +18,6 @@ func NewManager(sysDomain, token, uaacToken string) (mgr Manager) {
 		CloudController: cloudcontroller.NewManager(fmt.Sprintf("https://api.%s", sysDomain), token),
 		UtilsMgr:        utils.NewDefaultManager(),
 		LdapMgr:         ldap.NewManager(),
-		UserMgr:         user.NewManager(sysDomain, token, uaacToken),
 	}
 }
 
@@ -182,15 +180,15 @@ func (m *DefaultOrgManager) UpdateOrgUsers(configDir, ldapBindPassword string) (
 }
 
 func (m *DefaultOrgManager) UpdateBillingManagers(config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string) error {
-	return updateUserWithOrgRole("billing_managers", config*ldap.Config, org*cloudcontroller.Org, input*InputUpdateOrgs, uaacUsers)
+	return m.updateUserWithOrgRole("billing_managers", config, org, input, uaacUsers)
 }
 
 func (m *DefaultOrgManager) UpdateManagers(config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string) error {
-	return updateUserWithOrgRole("managers", config*ldap.Config, org*cloudcontroller.Org, input*InputUpdateOrgs, uaacUsers)
+	return m.updateUserWithOrgRole("managers", config, org, input, uaacUsers)
 }
 
 func (m *DefaultOrgManager) UpdateAuditors(config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string) error {
-	return updateUserWithOrgRole("auditors", config*ldap.Config, org*cloudcontroller.Org, input*InputUpdateOrgs, uaacUsers)
+	return m.updateUserWithOrgRole("auditors", config, org, input, uaacUsers)
 }
 
 func (m *DefaultOrgManager) getLdapUsers(config *ldap.Config, groupName string, userList []string) ([]ldap.User, error) {
@@ -233,6 +231,7 @@ func (m *DefaultOrgManager) updateLdapUsers(config *ldap.Config, org *cloudcontr
 			return err
 		}
 	}
+	return nil
 }
 
 func getUserIDsFromLdapUsers(ldapUsers []ldap.User) []string {
@@ -254,7 +253,7 @@ func (m *DefaultOrgManager) addUserToOrgAndRole(userID, orgGUID, role string) er
 	return nil
 }
 
-func updateUserWithOrgRole(config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string, role string) error {
+func (m *DefaultOrgManager) updateUserWithOrgRole(role string, config *ldap.Config, org *cloudcontroller.Org, input *InputUpdateOrgs, uaacUsers map[string]string) error {
 	if users, err := m.getLdapUsers(config, input.GetAuditorGroup(), input.Auditor.LdapUser); err == nil {
 		if err = m.updateLdapUsers(config, org, role, uaacUsers, users); err != nil {
 			return err
@@ -272,14 +271,14 @@ func updateUserWithOrgRole(config *ldap.Config, org *cloudcontroller.Org, input 
 		return err
 	}
 	authorizedUserIDs := append(getUserIDsFromLdapUsers(users), input.BillingManager.Users)
-	unauthorizedUserIDs := getUnauthorizedUserIDs(actualUsersIDs, authorizedUserIDs)
+	unauthorizedUserIDs := m.getUnauthorizedUserIDs(actualUsersIDs, authorizedUserIDs)
 	for _, userID := range unauthorizedUserIDs {
 		m.CloudController.RemoveUserFromOrgRole(org.MetaData.GUID, userID, role)
 	}
 	return nil
 }
 
-func getUnauthorizedUserIDs(actualUsersIDs, authorizedUserIDs []string) []string {
+func (m *DefaultOrgManager) getUnauthorizedUserIDs(actualUsersIDs, authorizedUserIDs []string) []string {
 	isUserAuthorized := make(map[string]bool, len(actualUsersIDs))
 	for _, userID := range actualUsersIDs {
 		isUserAuthorized[userID] = false

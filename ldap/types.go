@@ -33,13 +33,3 @@ type User struct {
 	UserID string
 	Email  string
 }
-
-type Users []User
-
-func (ldapUsers *Users) GetIDs([]string, error) {
-	userIDs := make([]string, len(ldapUsers))
-	for i, ldapUser := range ldapUsers {
-		userIDs[i] = ldapUser.UserID
-	}
-	return userIDs
-}

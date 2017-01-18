@@ -18,9 +18,9 @@ type Manager interface {
 
 //DefaultManager -
 type DefaultUserManager struct {
-	CloudController cloudcontroller.Manager
-	UAACMgr         uaac.Manager
-	UtilsMgr        utils.Manager
-	LdapMgr         ldap.Manager
-	LdapConfig      *ldap.Config
+	// CloudController cloudcontroller.Manager
+	// UAACMgr         uaac.Manager
+	// UtilsMgr        utils.Manager
+	// LdapMgr         ldap.Manager
+	// LdapConfig      *ldap.Config
 }
